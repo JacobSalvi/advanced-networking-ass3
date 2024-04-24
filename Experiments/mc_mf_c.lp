@@ -68,7 +68,7 @@ Subject to
     r3_r1_cx: rx_r3_r1 - 10 x_r3_r1 <= 0
     r3_r2_cx: rx_r3_r2 - 8 x_r3_r2 <= 0
     r4_r2_cx: rx_r4_r2 - 10 x_r4_r2 <= 0
-    r4_r3_cx: rx_r4_r3 - 30 x_r4_r3 <= 0
+    r4_r3_cx: rx_r4_r3 - 10 x_r4_r3 <= 0
 
     r1_r2_cy: ry_r1_r2 - 3 y_r1_r2 <= 0
     r1_r3_cy: ry_r1_r3 - 10 y_r1_r3 <= 0
@@ -80,7 +80,7 @@ Subject to
     r3_r1_cy: ry_r3_r1 - 10 y_r3_r1 <= 0
     r3_r2_cy: ry_r3_r2 - 8 y_r3_r2 <= 0
     r4_r2_cy: ry_r4_r2 - 10 y_r4_r2 <= 0
-    r4_r3_cy: ry_r4_r3 - 30 y_r4_r3 <= 0
+    r4_r3_cy: ry_r4_r3 - 10 y_r4_r3 <= 0
 
 
 
