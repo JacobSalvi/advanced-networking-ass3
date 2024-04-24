@@ -1,0 +1,51 @@
+Problem:    
+Rows:       6
+Columns:    13
+Non-zeros:  22
+Status:     OPTIMAL
+Objective:  obj = 15 (MAXimum)
+
+   No.   Row name   St   Activity     Lower bound   Upper bound    Marginal
+------ ------------ -- ------------- ------------- ------------- -------------
+     1 a            NS             0             0             =             1 
+     2 b            NS             0             0             =         < eps
+     3 c            NS             0             0             =         < eps
+     4 d            NS             0             0             =             1 
+     5 e            NS             0             0             =         < eps
+     6 f            NS             0             0             =         < eps
+
+   No. Column name  St   Activity     Lower bound   Upper bound    Marginal
+------ ------------ -- ------------- ------------- ------------- -------------
+     1 i1           B             15             0               
+     2 i2           NL             0             0                       < eps
+     3 x_ab         NU             7            -7             7             1 
+     4 x_ae         NU             3            -3             3             1 
+     5 x_ad         B              5            -6             6 
+     6 x_be         B              6            -7             7 
+     7 x_bc         B              1           -10            10 
+     8 x_ce         NL           -10           -10            10         < eps
+     9 x_cf         B             -4           -10            10 
+    10 o1           B             15             0               
+    11 x_de         NU             5            -5             5             1 
+    12 x_ef         NU             4            -4             4         < eps
+    13 o2           NL             0             0                       < eps
+
+Karush-Kuhn-Tucker optimality conditions:
+
+KKT.PE: max.abs.err = 0.00e+00 on row 0
+        max.rel.err = 0.00e+00 on row 0
+        High quality
+
+KKT.PB: max.abs.err = 0.00e+00 on row 0
+        max.rel.err = 0.00e+00 on row 0
+        High quality
+
+KKT.DE: max.abs.err = 0.00e+00 on column 0
+        max.rel.err = 0.00e+00 on column 0
+        High quality
+
+KKT.DB: max.abs.err = 0.00e+00 on row 0
+        max.rel.err = 0.00e+00 on row 0
+        High quality
+
+End of output

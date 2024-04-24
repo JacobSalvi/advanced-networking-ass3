@@ -1,0 +1,194 @@
+Problem:    
+Rows:       95
+Columns:    75 (36 integer, 36 binary)
+Non-zeros:  320
+Status:     INTEGER OPTIMAL
+Objective:  obj = 5 (MAXimum)
+
+   No.   Row name        Activity     Lower bound   Upper bound
+------ ------------    ------------- ------------- -------------
+     1 x_min                       0             0               
+     2 y_min                       0             0               
+     3 flow_a_rx                   0             0             = 
+     4 flow_b_rx                   0             0             = 
+     5 flow_c_rx                   0             0             = 
+     6 flow_d_rx                   0             0             = 
+     7 flow_e_rx                   0             0             = 
+     8 flow_f_rx                   0             0             = 
+     9 flow_a_ry                   0             0             = 
+    10 flow_b_ry                   0             0             = 
+    11 flow_c_ry                   0             0             = 
+    12 flow_d_ry                   0             0             = 
+    13 flow_e_ry                   0             0             = 
+    14 flow_f_ry                   0             0             = 
+    15 flow_a_x                   -1            -1             = 
+    16 flow_b_x                    0             0             = 
+    17 flow_c_x                    0             0             = 
+    18 flow_d_x                    0             0             = 
+    19 flow_e_x                    0             0             = 
+    20 flow_f_x                    1             1             = 
+    21 flow_a_y                    0             0             = 
+    22 flow_b_y                    0             0             = 
+    23 flow_c_y                    1             1             = 
+    24 flow_d_y                   -1            -1             = 
+    25 flow_e_y                    0             0             = 
+    26 flow_f_y                    0             0             = 
+    27 in_a_x                      0                           1 
+    28 in_b_x                      1                           1 
+    29 in_c_x                      1                           1 
+    30 in_d_x                      0                           1 
+    31 in_e_x                      0                           1 
+    32 in_f_x                      1                           1 
+    33 in_a_y                      0                           1 
+    34 in_b_y                      1                           1 
+    35 in_c_y                      1                           1 
+    36 in_d_y                      0                           1 
+    37 in_e_y                      1                           1 
+    38 in_f_y                      0                           1 
+    39 out_a_x                     1                           1 
+    40 out_b_x                     1                           1 
+    41 out_c_x                     1                           1 
+    42 out_d_x                     0                           1 
+    43 out_e_x                     0                           1 
+    44 out_f_x                     0                           1 
+    45 out_a_y                     0                           1 
+    46 out_b_y                     1                           1 
+    47 out_c_y                     0                           1 
+    48 out_d_y                     1                           1 
+    49 out_e_y                     1                           1 
+    50 out_f_y                     0                           1 
+    51 ab_c                        5                           7 
+    52 ae_c                        0                           3 
+    53 ad_c                        0                           6 
+    54 bc_c                       10                          10 
+    55 be_c                        5                           7 
+    56 ce_c                        0                          10 
+    57 cf_c                        5                          10 
+    58 de_c                        5                           5 
+    59 ef_c                        0                           4 
+    60 ab_cx                      -2                           0 
+    61 ae_cx                       0                           0 
+    62 ad_cx                       0                           0 
+    63 bc_cx                      -5                           0 
+    64 be_cx                       0                           0 
+    65 ce_cx                       0                           0 
+    66 cf_cx                      -5                           0 
+    67 de_cx                       0                           0 
+    68 ef_cx                       0                           0 
+    69 ba_cx                       0                           0 
+    70 ea_cx                       0                           0 
+    71 da_cx                       0                           0 
+    72 cb_cx                       0                           0 
+    73 eb_cx                       0                           0 
+    74 ec_cx                       0                           0 
+    75 fc_cx                       0                           0 
+    76 ed_cx                       0                           0 
+    77 fe_cx                       0                           0 
+    78 ab_cy                       0                           0 
+    79 ae_cy                       0                           0 
+    80 ad_cy                       0                           0 
+    81 bc_cy                      -5                           0 
+    82 be_cy                       0                           0 
+    83 ce_cy                       0                           0 
+    84 cf_cy                       0                           0 
+    85 de_cy                       0                           0 
+    86 ef_cy                       0                           0 
+    87 ba_cy                       0                           0 
+    88 ea_cy                       0                           0 
+    89 da_cy                       0                           0 
+    90 cb_cy                       0                           0 
+    91 eb_cy                      -2                           0 
+    92 ec_cy                       0                           0 
+    93 fc_cy                       0                           0 
+    94 ed_cy                       0                           0 
+    95 fe_cy                       0                           0 
+
+   No. Column name       Activity     Lower bound   Upper bound
+------ ------------    ------------- ------------- -------------
+     1 min                         5             0               
+     2 lambda_x                    5             0               
+     3 lambda_y                    5             0               
+     4 rx_da                       0             0               
+     5 rx_ad                       0             0               
+     6 rx_ea                       0             0               
+     7 rx_ae                       0             0               
+     8 rx_ba                       0             0               
+     9 rx_ab                       5             0               
+    10 rx_eb                       0             0               
+    11 rx_be                       0             0               
+    12 rx_cb                       0             0               
+    13 rx_bc                       5             0               
+    14 rx_ec                       0             0               
+    15 rx_ce                       0             0               
+    16 rx_fc                       0             0               
+    17 rx_cf                       5             0               
+    18 rx_ed                       0             0               
+    19 rx_de                       0             0               
+    20 rx_ef                       0             0               
+    21 rx_fe                       0             0               
+    22 ry_da                       0             0               
+    23 ry_ad                       0             0               
+    24 ry_ea                       0             0               
+    25 ry_ae                       0             0               
+    26 ry_ba                       0             0               
+    27 ry_ab                       0             0               
+    28 ry_eb                       5             0               
+    29 ry_be                       0             0               
+    30 ry_cb                       0             0               
+    31 ry_bc                       5             0               
+    32 ry_ec                       0             0               
+    33 ry_ce                       0             0               
+    34 ry_fc                       0             0               
+    35 ry_cf                       0             0               
+    36 ry_ed                       0             0               
+    37 ry_de                       5             0               
+    38 ry_ef                       0             0               
+    39 ry_fe                       0             0               
+    40 x_da         *              0             0             1 
+    41 x_ad         *              0             0             1 
+    42 x_ea         *              0             0             1 
+    43 x_ae         *              0             0             1 
+    44 x_ba         *              0             0             1 
+    45 x_ab         *              1             0             1 
+    46 x_eb         *              0             0             1 
+    47 x_be         *              0             0             1 
+    48 x_cb         *              0             0             1 
+    49 x_bc         *              1             0             1 
+    50 x_ec         *              0             0             1 
+    51 x_ce         *              0             0             1 
+    52 x_fc         *              0             0             1 
+    53 x_cf         *              1             0             1 
+    54 x_ed         *              0             0             1 
+    55 x_de         *              0             0             1 
+    56 x_ef         *              0             0             1 
+    57 x_fe         *              0             0             1 
+    58 y_da         *              0             0             1 
+    59 y_ad         *              0             0             1 
+    60 y_ea         *              0             0             1 
+    61 y_ae         *              0             0             1 
+    62 y_ba         *              0             0             1 
+    63 y_ab         *              0             0             1 
+    64 y_eb         *              1             0             1 
+    65 y_be         *              0             0             1 
+    66 y_cb         *              0             0             1 
+    67 y_bc         *              1             0             1 
+    68 y_ec         *              0             0             1 
+    69 y_ce         *              0             0             1 
+    70 y_fc         *              0             0             1 
+    71 y_cf         *              0             0             1 
+    72 y_ed         *              0             0             1 
+    73 y_de         *              1             0             1 
+    74 y_ef         *              0             0             1 
+    75 y_fe         *              0             0             1 
+
+Integer feasibility conditions:
+
+KKT.PE: max.abs.err = 0.00e+00 on row 0
+        max.rel.err = 0.00e+00 on row 0
+        High quality
+
+KKT.PB: max.abs.err = 0.00e+00 on row 0
+        max.rel.err = 0.00e+00 on row 0
+        High quality
+
+End of output
