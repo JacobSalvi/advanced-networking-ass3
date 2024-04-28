@@ -14,7 +14,6 @@ from mininet.node import Node, OVSBridge
 from mininet.topo import Topo
 
 
-
 def validate_definition_file(definition_file: Path):
     if not definition_file.exists():
         raise FileNotFoundError(definition_file)
@@ -159,7 +158,6 @@ class NetworkDefinition:
                     adjacent_routers.add(node)
         return adjacent_routers
 
-
     @staticmethod
     def _get_output_folder() -> Path:
         return Path(__file__).parent.parent.joinpath("TMP")
@@ -244,7 +242,7 @@ class NetworkDefinition:
                 flow_balance = f"{indentation}in_{router_name}_{idx}: "
                 tmp = []
                 for adjacent_router in adjacent_routers:
-                    tmp.append(f"fd{idx}_{adjacent_router}_{router_name}")
+                    tmp.append(f"fbi{idx}_{adjacent_router}_{router_name}")
                 flow_balance += " + ".join(tmp)
                 flow_balance += " <= 1"
                 subject_to.append(flow_balance)
@@ -259,7 +257,7 @@ class NetworkDefinition:
                 flow_balance = f"{indentation}out_{router_name}_{idx}: "
                 tmp = []
                 for adjacent_router in adjacent_routers:
-                    tmp.append(f"fd{idx}_{router_name}_{adjacent_router}")
+                    tmp.append(f"fbi{idx}_{router_name}_{adjacent_router}")
                 flow_balance += " + ".join(tmp)
                 flow_balance += " <= 1"
                 subject_to.append(flow_balance)
@@ -267,17 +265,16 @@ class NetworkDefinition:
             subject_to.append("")
 
         # link capacities, for each link
-        subject_to.append(f"{indentation}\\ link capacities, for each link")
-        for router_name in router_names:
-            adjacent_routers = self._get_adjacent_routers(router_name=router_name)
-            for adjacent_router in adjacent_routers:
-                tmp = []
-                for idx, flow_demand in enumerate(self._flow_demands):
-                    pass
+        link_capacities: List[str] = self._compute_cplex_link_capacities()
+        subject_to.extend(link_capacities)
 
+        # control of real-value flow variables by corresponding indicators, for each flow and link
+        real_indicators: List[str] = self._compute_cplex_real_value_indicators_control()
+        subject_to.extend(real_indicators)
 
         # Binary section
         binaries: List[str] = ["Binary"]
+        binaries.extend(self._compute_cplex_binaries())
 
         subject_to = [f"{line}\n" for line in subject_to]
         binaries = [f"{line}\n" for line in binaries]
@@ -286,6 +283,74 @@ class NetworkDefinition:
         cplex_def.write("End")
         cplex_def.close()
         return
+
+    def _compute_cplex_binaries(self) -> List[str]:
+        indentation: str = " "*4
+        binaries: List[str] = []
+        router_names: Set[str] = {n.node_name for v in self._subnet_to_nodes.values()
+                                  for n in v if n.node_type == NodeType.ROUTER}
+        for idx, flow_demand in enumerate(self._flow_demands):
+            for router_name in router_names:
+                adjacent_routers = self._get_adjacent_routers(router_name=router_name)
+                for adjacent_router in adjacent_routers:
+                    binaries.append(f"{indentation}fbi{idx}_{adjacent_router}_{router_name}")
+            binaries.append("")
+        return binaries
+
+    def _compute_cplex_real_value_indicators_control(self) -> List[str]:
+        indentation: str = " " * 4
+        real_indicators: List[str] = [f"{indentation}\\ control of real-value flow variables by corresponding indicators, for each flow and link"]
+        # given that router are connected with point to point links they must be in a subnet which contain only
+        # two routers
+        router_links = [(nodes, sub_net) for sub_net, nodes in self._subnet_to_nodes.items()
+                        if len(nodes) == 2
+                        and nodes[0].node_type == NodeType.ROUTER
+                        and nodes[1].node_type == NodeType.ROUTER]
+        for idx, flow_demand in enumerate(self._flow_demands):
+            for router_link in router_links:
+                link_routers = router_link[0]
+                subnet = router_link[1]
+                cost = self._subnet_to_cost[subnet]
+                router_1: NodeDefinition = link_routers[0]
+                router_2: NodeDefinition = link_routers[1]
+                r1_r2_cx = f"{indentation}{router_1.node_name}_{router_2.node_name}_c{idx}: "
+                real = f"fbr{idx}_{router_1.node_name}_{router_2.node_name} - {cost} fbi{idx}_{router_1.node_name}_{router_2.node_name}"
+                r1_r2_cx += real
+                r1_r2_cx += " <= 0"
+                r2_r1_cx = f"{indentation}{router_2.node_name}_{router_1.node_name}_c{idx}: "
+                real = f"fbr{idx}_{router_2.node_name}_{router_1.node_name} - {cost} fbi{idx}_{router_2.node_name}_{router_1.node_name}"
+                r2_r1_cx += real
+                r2_r1_cx += " <= 0"
+                real_indicators.append(r1_r2_cx)
+                real_indicators.append(r2_r1_cx)
+            real_indicators.append("")
+        real_indicators.append("")
+        return real_indicators
+
+    def _compute_cplex_link_capacities(self) -> List[str]:
+        indentation: str = " " * 4
+        link_capacities: List[str] = [f"{indentation}\\ link capacities, for each link"]
+        # given that router are connected with point to point links they must be in a subnet which contain only
+        # two routers
+        router_links = [(nodes, sub_net) for sub_net, nodes in self._subnet_to_nodes.items()
+                        if len(nodes) == 2
+                        and nodes[0].node_type == NodeType.ROUTER
+                        and nodes[1].node_type == NodeType.ROUTER]
+        for router_link in router_links:
+            link_routers = router_link[0]
+            subnet = router_link[1]
+            router_1: NodeDefinition = link_routers[0]
+            router_2: NodeDefinition = link_routers[1]
+            link_capacity_name: str = f"{indentation}{router_1.node_name}_{router_2.node_name}_c: "
+            tmp = []
+            for idx, flow_demand in enumerate(self._flow_demands):
+                tmp.append(f"fbr{idx}_{router_1.node_name}_{router_2.node_name}")
+                tmp.append(f"fbr{idx}_{router_2.node_name}_{router_1.node_name}")
+            link_capacity_name += " + ".join(tmp)
+            link_capacity_name += f" <= {self._subnet_to_cost[subnet]}"
+            link_capacities.append(link_capacity_name)
+        link_capacities.append("")
+        return link_capacities
 
     def _load_routers(self, routers_def: dict):
         for routers_name, routers_def in routers_def.items():
