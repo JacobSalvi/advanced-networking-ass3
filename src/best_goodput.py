@@ -506,8 +506,8 @@ class NetworkDefinition:
 
     def set_up_emulation(self):
         topology: NetworkTopology = NetworkTopology(subnet_to_nodes=self._subnet_to_nodes)
-        # net = Mininet(topo=topology, controller=None, switch=OVSBridge)
-        # net.start()
+        net = Mininet(topo=topology, controller=None, switch=OVSBridge)
+        net.start()
 
         # router are connected point to point
         router_links = [(nodes, sub_net) for sub_net, nodes in self._subnet_to_nodes.items()
@@ -529,7 +529,7 @@ class NetworkDefinition:
 
                 routing_table_entry = f"ip route add {target_host.address} via {target_router.address}"
                 print(f"{source_router_name}: {routing_table_entry}")
-                # net[source_router].cmd(routing_table_entry)
+                net[source_router].cmd(routing_table_entry)
 
     def set_up_emulation_2(self):
         shortest_paths = self._find_shortest_paths()
