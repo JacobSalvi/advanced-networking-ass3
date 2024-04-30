@@ -2,6 +2,7 @@ import argparse
 import math
 import dataclasses
 import ipaddress
+import subprocess
 from collections import defaultdict
 from enum import IntEnum
 from pathlib import Path
@@ -82,9 +83,8 @@ class LinuxRouter(Node):
 
 
 class NetworkTopology(Topo):
-    def __init__(self, subnet_to_nodes, subnet_to_cost: Dict[str, int]):
+    def __init__(self, subnet_to_nodes):
         self._subnet_to_nodes = subnet_to_nodes
-        self._subnet_to_cost = subnet_to_cost
         self.switch_id: int = 0
         super().__init__()
 
@@ -137,9 +137,45 @@ class NetworkDefinition:
         self._flow_demands: List[FlowDemand] = [FlowDemand(source_node=demand.get("src"),
                                                            destination_node=demand.get("dst"),
                                                            rate=demand.get("rate")) for demand in demands]
+        self._flow_to_goodput: Dict[int, float] = {}
+        self._flow_to_routes: Dict[int, List[str]] = defaultdict(list)
         self._load_routers(routers_def=routers)
         self._load_hosts(hosts_def=hosts)
         self._create_cplex_file()
+        self._solve_linear_program()
+        self._get_flow_routes()
+
+    def _get_flow_routes(self):
+        lines: List[str]
+        with open(self._get_output_file(), "r") as of:
+            lines = of.readlines()
+        lines = [' '.join(line.split()) for line in lines]
+        lines = [line for line in lines if line != ""]
+        filtered_lines: List[str] = []
+        for line in lines:
+            elements = line.split(" ")
+            if not elements:
+                continue
+            if not elements[0].isdigit():
+                continue
+            filtered_lines.append(line)
+        for line in filtered_lines:
+            columns = line.split(" ")
+            var_name: str = columns[1]
+            if var_name.startswith("lambda_"):
+                flow_idx = int(var_name.lstrip("lambda_"))
+                self._flow_to_goodput[flow_idx] = float(columns[2])
+            if var_name.startswith("fbr"):
+                flow_idx, link = var_name.lstrip("fbr").split("_", 1)
+                value: float = float(columns[2])
+                if value != 0:
+                    self._flow_to_routes[int(flow_idx)].append(link)
+        return
+
+    def _solve_linear_program(self):
+        subprocess.run(["glpsol", "--lp", self._get_cplex_file(), "-o", self._get_output_file()],
+                       stdout=subprocess.DEVNULL)
+        return
 
     def _get_router_connected_to_host(self, host_name: str) -> Optional[str]:
         for subnet, nodes in self._subnet_to_nodes.items():
@@ -166,6 +202,10 @@ class NetworkDefinition:
     def _get_cplex_file() -> Path:
         return NetworkDefinition._get_output_folder().joinpath("cplex_definition.lp")
 
+    @staticmethod
+    def _get_output_file() -> Path:
+        return NetworkDefinition._get_output_folder().joinpath("sol.txt")
+
     def _create_cplex_file(self):
         output_folder: Path = self._get_output_folder()
         output_folder.mkdir(exist_ok=True)
@@ -175,7 +215,11 @@ class NetworkDefinition:
         cplex_definition_file.touch()
 
         cplex_def: TextIO = open(cplex_definition_file, "w")
-        cplex_def.writelines(["Maximize\n", "obj: rate_min\n", "\n"])
+        denominator: float = math.prod([fd.rate for fd in self._flow_demands])
+
+        objective_function: str = "obj: rate_min + D\n"
+
+        cplex_def.writelines(["Maximize\n", objective_function, "\n"])
 
         # Subject to Section
         subject_to: List[str] = ["Subject to"]
@@ -188,6 +232,15 @@ class NetworkDefinition:
 
         for idx, demand in enumerate(self._flow_demands):
             subject_to.append(f"{indentation}ratio_{idx}: lambda_{idx} - {demand.rate} rate_{idx} = 0")
+
+        for idx, demand in enumerate(self._flow_demands):
+            subject_to.append(f"{indentation}limit_{idx}: rate_{idx} <= 1")
+
+        # sum of ratio divided by the product of the desired rates
+        sum_ratio: str = f"{indentation}sum_ratio: "
+        sum_ratio += " + ".join([f"rate_{i}" for i in range(len(self._flow_demands))])
+        sum_ratio += f" - {denominator} D = 0"
+        subject_to.append(sum_ratio)
 
         # flow balance for real-value rate variables
         subject_to.append(f"{indentation}\\ flow balance for real-value rate variables")
@@ -442,10 +495,45 @@ class NetworkDefinition:
         # If a node has multiple interfaces in the cheapest subnet I believe that taking any of them should suffice
         return [n for n in self._subnet_to_nodes[cheapest_subnet] if n.node_name == node_name2][0]
 
+    @staticmethod
+    def _get_node_definition_in_same_link(router_links, router_name1: str, router_name2: str):
+        for nodes, subnet in router_links:
+            if nodes[0].node_name == router_name1 and nodes[1].node_name == router_name2:
+                return nodes[0], nodes[1]
+            if nodes[0].node_name == router_name2 and nodes[1].node_name == router_name1:
+                return nodes[1], nodes[0]
+        return
+
     def set_up_emulation(self):
+        topology: NetworkTopology = NetworkTopology(subnet_to_nodes=self._subnet_to_nodes)
+        # net = Mininet(topo=topology, controller=None, switch=OVSBridge)
+        # net.start()
+
+        # router are connected point to point
+        router_links = [(nodes, sub_net) for sub_net, nodes in self._subnet_to_nodes.items()
+                        if len(nodes) == 2
+                        and nodes[0].node_type == NodeType.ROUTER
+                        and nodes[1].node_type == NodeType.ROUTER]
+        for flow, routes in self._flow_to_routes.items():
+            flow_demand = self._flow_demands[flow]
+            target_host_name: str = flow_demand.destination_node
+            target_host: NodeDefinition = [n for nodes in self._subnet_to_nodes.values() for n in nodes
+                                           if n.node_name == target_host_name][0]
+            print(f"flow {flow}: {flow_demand.source_node} - {flow_demand.destination_node} - {flow_demand.rate}")
+            for route in routes:
+                source_router_name: str = route.split("_")[0]
+                target_router_name: str = route.split("_")[1]
+                source_router, target_router = self._get_node_definition_in_same_link(router_links,
+                                                                                      source_router_name,
+                                                                                      target_router_name)
+
+                routing_table_entry = f"ip route add {target_host.address} via {target_router.address}"
+                print(f"{source_router_name}: {routing_table_entry}")
+                # net[source_router].cmd(routing_table_entry)
+
+    def set_up_emulation_2(self):
         shortest_paths = self._find_shortest_paths()
-        topology: NetworkTopology = NetworkTopology(subnet_to_nodes=self._subnet_to_nodes,
-                                                    subnet_to_cost=self._subnet_to_cost)
+        topology: NetworkTopology = NetworkTopology(subnet_to_nodes=self._subnet_to_nodes)
 
         # r2 ip route add 192.168.0.4/30 via 192.168.0.1
         # r3 ip route add 192.168.0.0/30 via 192.168.0.5
@@ -511,9 +599,14 @@ class NetworkDefinition:
 
     def print_cplex(self):
         cplex_file: Path = self._get_cplex_file()
-        with open(cplex_file, "") as cplex:
+        with open(cplex_file, "r") as cplex:
             for line in cplex.readlines():
-                print(line)
+                print(line, end="")
+        return
+
+    def print_goodput(self):
+        for flow, goodput in self._flow_to_goodput.items():
+            print(f"The best goodput for flow demand #{flow} is {goodput} Mpbs")
         return
 
 
@@ -536,12 +629,11 @@ def main():
     should_print_goodput: bool = args.print
     should_print_cplex: bool = args.lp
     if should_print_goodput:
-        # network_definition.output_graph()
-        pass
+        network_definition.print_goodput()
     if should_print_cplex:
         network_definition.print_cplex()
 
-    # network_definition.set_up_emulation()
+    network_definition.set_up_emulation()
     return
 
 

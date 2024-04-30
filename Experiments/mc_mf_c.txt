@@ -1,0 +1,126 @@
+Problem:    
+Rows:       59
+Columns:    43 (20 integer, 20 binary)
+Non-zeros:  188
+Status:     INTEGER OPTIMAL
+Objective:  obj = 8 (MAXimum)
+
+   No.   Row name        Activity     Lower bound   Upper bound
+------ ------------    ------------- ------------- -------------
+     1 x_min                       0             0               
+     2 y_min                       0             0               
+     3 flow_r1_rx                  0             0             = 
+     4 flow_r2_rx                  0             0             = 
+     5 flow_r3_rx                  0             0             = 
+     6 flow_r4_rx                  0             0             = 
+     7 flow_r1_ry                  0             0             = 
+     8 flow_r2_ry                  0             0             = 
+     9 flow_r3_ry                  0             0             = 
+    10 flow_r4_ry                  0             0             = 
+    11 flow_r1_x                  -1            -1             = 
+    12 flow_r2_x                   0             0             = 
+    13 flow_r3_x                   0             0             = 
+    14 flow_r4_x                   1             1             = 
+    15 flow_r1_y                   0             0             = 
+    16 flow_r2_y                   0             0             = 
+    17 flow_r3_y                  -1            -1             = 
+    18 flow_r4_y                   1             1             = 
+    19 in_r1_x                     0                           1 
+    20 in_r2_x                     0                           1 
+    21 in_r3_x                     1                           1 
+    22 in_r4_x                     1                           1 
+    23 in_r1_y                     0                           1 
+    24 in_r2_y                     1                           1 
+    25 in_r3_y                     0                           1 
+    26 in_r4_y                     1                           1 
+    27 out_r1_x                    1                           1 
+    28 out_r2_x                    0                           1 
+    29 out_r3_x                    1                           1 
+    30 out_r4_x                    0                           1 
+    31 out_r1_y                    0                           1 
+    32 out_r2_y                    1                           1 
+    33 out_r3_y                    1                           1 
+    34 out_r4_y                    0                           1 
+    35 r1_r2_c                     0                          32 
+    36 r1_r3_c                     8                          10 
+    37 r2_r4_c                     8                          10 
+    38 r3_r2_c                     8                           8 
+    39 r3_r4_c                     8                          10 
+    40 r1_r2_cx                    0                           0 
+    41 r1_r3_cx                   -2                           0 
+    42 r2_r3_cx                    0                           0 
+    43 r2_r4_cx                    0                           0 
+    44 r3_r4_cx                   -2                           0 
+    45 r2_r1_cx                    0                           0 
+    46 r3_r1_cx                    0                           0 
+    47 r3_r2_cx                    0                           0 
+    48 r4_r2_cx                    0                           0 
+    49 r4_r3_cx                    0                           0 
+    50 r1_r2_cy                    0                           0 
+    51 r1_r3_cy                    0                           0 
+    52 r2_r3_cy                    0                           0 
+    53 r2_r4_cy                   -2                           0 
+    54 r3_r4_cy                    0                           0 
+    55 r2_r1_cy                    0                           0 
+    56 r3_r1_cy                    0                           0 
+    57 r3_r2_cy                    0                           0 
+    58 r4_r2_cy                    0                           0 
+    59 r4_r3_cy                    0                           0 
+
+   No. Column name       Activity     Lower bound   Upper bound
+------ ------------    ------------- ------------- -------------
+     1 min                         8             0               
+     2 lambda_x                    8             0               
+     3 lambda_y                    8             0               
+     4 rx_r2_r1                    0             0               
+     5 rx_r1_r2                    0             0               
+     6 rx_r3_r1                    0             0               
+     7 rx_r1_r3                    8             0               
+     8 rx_r4_r2                    0             0               
+     9 rx_r2_r4                    0             0               
+    10 rx_r3_r2                    0             0               
+    11 rx_r2_r3                    0             0               
+    12 rx_r4_r3                    0             0               
+    13 rx_r3_r4                    8             0               
+    14 ry_r2_r1                    0             0               
+    15 ry_r1_r2                    0             0               
+    16 ry_r3_r1                    0             0               
+    17 ry_r1_r3                    0             0               
+    18 ry_r4_r2                    0             0               
+    19 ry_r2_r4                    8             0               
+    20 ry_r3_r2                    8             0               
+    21 ry_r2_r3                    0             0               
+    22 ry_r4_r3                    0             0               
+    23 ry_r3_r4                    0             0               
+    24 x_r2_r1      *              0             0             1 
+    25 x_r1_r2      *              0             0             1 
+    26 x_r3_r1      *              0             0             1 
+    27 x_r1_r3      *              1             0             1 
+    28 x_r4_r2      *              0             0             1 
+    29 x_r2_r4      *              0             0             1 
+    30 x_r3_r2      *              0             0             1 
+    31 x_r2_r3      *              0             0             1 
+    32 x_r4_r3      *              0             0             1 
+    33 x_r3_r4      *              1             0             1 
+    34 y_r2_r1      *              0             0             1 
+    35 y_r1_r2      *              0             0             1 
+    36 y_r3_r1      *              0             0             1 
+    37 y_r1_r3      *              0             0             1 
+    38 y_r4_r2      *              0             0             1 
+    39 y_r2_r4      *              1             0             1 
+    40 y_r3_r2      *              1             0             1 
+    41 y_r2_r3      *              0             0             1 
+    42 y_r4_r3      *              0             0             1 
+    43 y_r3_r4      *              0             0             1 
+
+Integer feasibility conditions:
+
+KKT.PE: max.abs.err = 0.00e+00 on row 0
+        max.rel.err = 0.00e+00 on row 0
+        High quality
+
+KKT.PB: max.abs.err = 0.00e+00 on row 0
+        max.rel.err = 0.00e+00 on row 0
+        High quality
+
+End of output
