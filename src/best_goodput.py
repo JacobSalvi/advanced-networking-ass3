@@ -535,6 +535,8 @@ class NetworkDefinition:
                 net[source_router_name].cmd(routing_table_entry)
                 routing_table_entry_t = f"ip route add {source_host.address} via {source_router.address}"
                 net[target_router_name].cmd(routing_table_entry_t)
+                print(f"{target_router_name}: {routing_table_entry_t}")
+
 
         # for reasons beyond my understanding the hosts need to be told how to find other hosts explicitly even
         # if they have a default route.
