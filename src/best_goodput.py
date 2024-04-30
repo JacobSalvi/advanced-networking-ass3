@@ -531,6 +531,10 @@ class NetworkDefinition:
                 print(f"{source_router_name}: {routing_table_entry}")
                 net[source_router_name].cmd(routing_table_entry)
 
+        CLI(net)
+        net.stop()
+        return
+
     def set_up_emulation_2(self):
         shortest_paths = self._find_shortest_paths()
         topology: NetworkTopology = NetworkTopology(subnet_to_nodes=self._subnet_to_nodes)
