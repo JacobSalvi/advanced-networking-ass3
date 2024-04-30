@@ -529,7 +529,7 @@ class NetworkDefinition:
 
                 routing_table_entry = f"ip route add {target_host.address} via {target_router.address}"
                 print(f"{source_router_name}: {routing_table_entry}")
-                net[source_router].cmd(routing_table_entry)
+                net[source_router_name].cmd(routing_table_entry)
 
     def set_up_emulation_2(self):
         shortest_paths = self._find_shortest_paths()
