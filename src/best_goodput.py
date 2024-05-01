@@ -504,6 +504,11 @@ class NetworkDefinition:
                 return nodes[1], nodes[0]
         return
 
+    def _get_connected_router(self, host: NodeDefinition):
+        subnet = get_subnet(host.address, host.mask)
+        nodes = self._subnet_to_nodes[subnet]
+        return [n for n in nodes if n.node_type == NodeType.ROUTER][0]
+
     def set_up_emulation(self):
         topology: NetworkTopology = NetworkTopology(subnet_to_nodes=self._subnet_to_nodes)
         net = Mininet(topo=topology, controller=None, switch=OVSBridge)
@@ -523,17 +528,28 @@ class NetworkDefinition:
             source_host: NodeDefinition = [n for nodes in self._subnet_to_nodes.values() for n in nodes
                                            if n.node_name == source_host_name][0]
             print(f"flow {flow}: {flow_demand.source_node} - {flow_demand.destination_node} - {flow_demand.rate}")
+
+            # mark packets
+            # iptables -t mangle -A PREROUTING -s <IP_ADDRESS> -j MARK --set-mark <MARK_VALUE>
+
+            #get router connected to host
+            immediate_router = self._get_connected_router(source_host)
+            net[immediate_router.node_name].cmd(f"iptables -t mangle -A PREROUTING -s {source_host.address} -d {target_host.address} -j MARK --set-mark {flow}")
             for route in routes:
                 source_router_name: str = route.split("_")[0]
                 target_router_name: str = route.split("_")[1]
                 source_router, target_router = self._get_node_definition_in_same_link(router_links,
                                                                                       source_router_name,
                                                                                       target_router_name)
-
-                routing_table_entry = f"ip route add {target_host.address} via {target_router.address}"
+                # old
+                # routing_table_entry = f"ip route add {target_host.address} via {target_router.address}"
+                routing_table_entry = f"ip route add {target_host.address} via {target_host.address} table {flow}"
+                net[source_router_name].cmd(f"ip rule add fwmark {flow} table {flow} priority 1000")
                 print(f"{source_router_name}: {routing_table_entry}")
                 net[source_router_name].cmd(routing_table_entry)
-                routing_table_entry_t = f"ip route add {source_host.address} via {source_router.address}"
+                # old
+                # routing_table_entry_t = f"ip route add {source_host.address} via {source_router.address}"
+                routing_table_entry_t = f"ip route add {source_host.address} via {source_router.address} table {flow}"
                 net[target_router_name].cmd(routing_table_entry_t)
                 print(f"{target_router_name}: {routing_table_entry_t}")
 
