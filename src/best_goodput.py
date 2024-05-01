@@ -519,40 +519,40 @@ class NetworkDefinition:
                         if len(nodes) == 2
                         and nodes[0].node_type == NodeType.ROUTER
                         and nodes[1].node_type == NodeType.ROUTER]
-        for flow, routes in self._flow_to_routes.items():
-            flow_demand = self._flow_demands[flow]
-            target_host_name: str = flow_demand.destination_node
-            target_host: NodeDefinition = [n for nodes in self._subnet_to_nodes.values() for n in nodes
-                                           if n.node_name == target_host_name][0]
-            source_host_name: str = flow_demand.source_node
-            source_host: NodeDefinition = [n for nodes in self._subnet_to_nodes.values() for n in nodes
-                                           if n.node_name == source_host_name][0]
-            print(f"flow {flow}: {flow_demand.source_node} - {flow_demand.destination_node} - {flow_demand.rate}")
-
-            # mark packets
-            # iptables -t mangle -A PREROUTING -s <IP_ADDRESS> -j MARK --set-mark <MARK_VALUE>
-
-            #get router connected to host
-            immediate_router = self._get_connected_router(source_host)
-            net[immediate_router.node_name].cmd(f"iptables -t mangle -A PREROUTING -s {source_host.address} -d {target_host.address} -j MARK --set-mark {flow}")
-            net[immediate_router.node_name].cmd("sysctl net.ipv4.conf.all.rp_filter=0")
-            for route in routes:
-                source_router_name: str = route.split("_")[0]
-                target_router_name: str = route.split("_")[1]
-                source_router, target_router = self._get_node_definition_in_same_link(router_links,
-                                                                                      source_router_name,
-                                                                                      target_router_name)
-                # old
-                # routing_table_entry = f"ip route add {target_host.address} via {target_router.address}"
-                routing_table_entry = f"ip route add {target_host.address} via {target_host.address} table {flow}"
-                net[source_router_name].cmd(f"ip rule add fwmark {flow} table {flow} priority 1000")
-                print(f"{source_router_name}: {routing_table_entry}")
-                net[source_router_name].cmd(routing_table_entry)
-                # old
-                # routing_table_entry_t = f"ip route add {source_host.address} via {source_router.address}"
-                routing_table_entry_t = f"ip route add {source_host.address} via {source_router.address} table {flow}"
-                net[target_router_name].cmd(routing_table_entry_t)
-                print(f"{target_router_name}: {routing_table_entry_t}")
+        # for flow, routes in self._flow_to_routes.items():
+        #     flow_demand = self._flow_demands[flow]
+        #     target_host_name: str = flow_demand.destination_node
+        #     target_host: NodeDefinition = [n for nodes in self._subnet_to_nodes.values() for n in nodes
+        #                                    if n.node_name == target_host_name][0]
+        #     source_host_name: str = flow_demand.source_node
+        #     source_host: NodeDefinition = [n for nodes in self._subnet_to_nodes.values() for n in nodes
+        #                                    if n.node_name == source_host_name][0]
+        #     print(f"flow {flow}: {flow_demand.source_node} - {flow_demand.destination_node} - {flow_demand.rate}")
+        #
+        #     # mark packets
+        #     # iptables -t mangle -A PREROUTING -s <IP_ADDRESS> -j MARK --set-mark <MARK_VALUE>
+        #
+        #     #get router connected to host
+        #     immediate_router = self._get_connected_router(source_host)
+        #     net[immediate_router.node_name].cmd(f"iptables -t mangle -A PREROUTING -s {source_host.address} -d {target_host.address} -j MARK --set-mark {flow}")
+        #     net[immediate_router.node_name].cmd("sysctl net.ipv4.conf.all.rp_filter=0")
+        #     for route in routes:
+        #         source_router_name: str = route.split("_")[0]
+        #         target_router_name: str = route.split("_")[1]
+        #         source_router, target_router = self._get_node_definition_in_same_link(router_links,
+        #                                                                               source_router_name,
+        #                                                                               target_router_name)
+        #         # old
+        #         # routing_table_entry = f"ip route add {target_host.address} via {target_router.address}"
+        #         routing_table_entry = f"ip route add {target_host.address} via {target_host.address} table {flow}"
+        #         net[source_router_name].cmd(f"ip rule add fwmark {flow} table {flow} priority 1000")
+        #         print(f"{source_router_name}: {routing_table_entry}")
+        #         net[source_router_name].cmd(routing_table_entry)
+        #         # old
+        #         # routing_table_entry_t = f"ip route add {source_host.address} via {source_router.address}"
+        #         routing_table_entry_t = f"ip route add {source_host.address} via {source_router.address} table {flow}"
+        #         net[target_router_name].cmd(routing_table_entry_t)
+        #         print(f"{target_router_name}: {routing_table_entry_t}")
 
         ###
         shortest_paths = self._find_shortest_paths()
