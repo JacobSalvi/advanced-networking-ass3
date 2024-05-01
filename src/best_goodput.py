@@ -287,35 +287,7 @@ class NetworkDefinition:
             # Used to visually separate flow for easier inspection
             subject_to.append("")
 
-        # mutual exclusion of incoming flows into same node, for each flow, for each node
-        subject_to.append(f"{indentation}\\ mutual exclusion of incoming flows into same node, for each flow, for each node")
-        for idx, flow_demand in enumerate(self._flow_demands):
-            for router_name in router_names:
-                adjacent_routers = self._get_adjacent_routers(router_name=router_name)
-                flow_balance = f"{indentation}in_{router_name}_{idx}: "
-                tmp = []
-                for adjacent_router in adjacent_routers:
-                    tmp.append(f"fbi{idx}_{adjacent_router}_{router_name}")
-                flow_balance += " + ".join(tmp)
-                flow_balance += " <= 1"
-                subject_to.append(flow_balance)
-            # Used to visually separate flow for easier inspection
-            subject_to.append("")
-
-        # mutual exclusion of outgoing out of same node, for each flow, for each node
-        subject_to.append(f"{indentation}\\ mutual exclusion of outgoing out of same node, for each flow, for each node")
-        for idx, flow_demand in enumerate(self._flow_demands):
-            for router_name in router_names:
-                adjacent_routers = self._get_adjacent_routers(router_name=router_name)
-                flow_balance = f"{indentation}out_{router_name}_{idx}: "
-                tmp = []
-                for adjacent_router in adjacent_routers:
-                    tmp.append(f"fbi{idx}_{router_name}_{adjacent_router}")
-                flow_balance += " + ".join(tmp)
-                flow_balance += " <= 1"
-                subject_to.append(flow_balance)
-            # Used to visually separate flow for easier inspection
-            subject_to.append("")
+        subject_to.extend(self._compute_cplex_in_out_flow())
 
         # link capacities, for each link
         link_capacities: List[str] = self._compute_cplex_link_capacities()
@@ -336,6 +308,36 @@ class NetworkDefinition:
         cplex_def.write("End")
         cplex_def.close()
         return
+
+    def _compute_cplex_in_out_flow(self) -> List[str]:
+        incoming: List[str] = []
+        outgoing: List[str] = []
+        indentation: str = " "*4
+        router_names: Set[str] = {n.node_name for v in self._subnet_to_nodes.values()
+                                  for n in v if n.node_type == NodeType.ROUTER}
+        # mutual exclusion of incoming flows into same node, for each flow, for each node
+        incoming.append(f"{indentation}\\ mutual exclusion of incoming flows into same node, for each flow, for each node")
+        outgoing.append(f"{indentation}\\ mutual exclusion of outgoing out of same node, for each flow, for each node")
+        for idx, flow_demand in enumerate(self._flow_demands):
+            for router_name in router_names:
+                adjacent_routers = self._get_adjacent_routers(router_name=router_name)
+                flow_balance_in = f"{indentation}in_{router_name}_{idx}: "
+                flow_balance_out = f"{indentation}out_{router_name}_{idx}: "
+                tmp_in = []
+                tmp_out = []
+                for adjacent_router in adjacent_routers:
+                    tmp_in.append(f"fbi{idx}_{adjacent_router}_{router_name}")
+                    tmp_out.append(f"fbi{idx}_{router_name}_{adjacent_router}")
+                flow_balance_in += " + ".join(tmp_in)
+                flow_balance_in += " <= 1"
+                flow_balance_out += " + ".join(tmp_out)
+                flow_balance_out += " <= 1"
+                incoming.append(flow_balance_in)
+                outgoing.append(flow_balance_out)
+            # Used to visually separate flow for easier inspection
+            incoming.append("")
+            outgoing.append("")
+        return incoming + outgoing
 
     def _compute_cplex_binaries(self) -> List[str]:
         indentation: str = " "*4
