@@ -554,6 +554,30 @@ class NetworkDefinition:
                 net[target_router_name].cmd(routing_table_entry_t)
                 print(f"{target_router_name}: {routing_table_entry_t}")
 
+        ###
+        shortest_paths = self._find_shortest_paths()
+        # HOST go through their only router anyway
+        node_names = [n.node_name for v in self._subnet_to_nodes.values() for n in v if
+                      n.node_type != NodeType.HOST]
+        node_names = list(set(node_names))
+        # set up routing tables
+        for source_node, paths in shortest_paths.items():
+            node_to_prev = paths[1]
+            source_node_interfaces = [n for v in self._subnet_to_nodes.values() for n in v if
+                                      n.node_name == source_node]
+            for node_name in node_names:
+                if node_name == source_node:
+                    continue
+                prev = node_to_prev[node_name]
+                # prev and node are neighbours therefore they are both part of at least one subnet
+                link = self.find_shortest_link_between(node_name, prev)
+
+                for si in source_node_interfaces:
+                    complete_subnet_address = si.complete_address()
+                    routing_table_entry = f"ip route add {si.address} via {link.address}"
+                    print(f"{node_name}: {routing_table_entry}")
+                    net[node_name].cmd(routing_table_entry)
+        pass
 
         # for reasons beyond my understanding the hosts need to be told how to find other hosts explicitly even
         # if they have a default route.
@@ -684,4 +708,5 @@ def main():
 if __name__ == "__main__":
     # Author: Jacob Salvi
     # I thank the teaching assistant, Pasquale Polverino, for the help given during this assignment.
+    # r1 ip route show table all
     main()
