@@ -542,7 +542,7 @@ class NetworkDefinition:
                                                                                       target_router_name)
                 # old
                 # routing_table_entry = f"ip route add {target_host.address} via {target_router.address}"
-                routing_table_entry = f"ip route add {target_host.address} via {target_host.address} table {mark}"
+                routing_table_entry = f"ip route add {target_host.address} via {target_router.address} table {mark}"
                 net[source_router_name].cmd(f"ip rule add fwmark {mark} table {mark} priority 1000")
                 print(f"{source_router_name}: {routing_table_entry}")
                 net[source_router_name].cmd(routing_table_entry)
@@ -573,7 +573,7 @@ class NetworkDefinition:
                 for si in source_node_interfaces:
                     complete_subnet_address = si.complete_address()
                     routing_table_entry = f"ip route add {si.address} via {link.address}"
-                    print(f"{node_name}: {routing_table_entry}")
+                    # print(f"{node_name}: {routing_table_entry}")
                     net[node_name].cmd(routing_table_entry)
         pass
 
