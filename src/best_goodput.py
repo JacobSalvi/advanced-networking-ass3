@@ -529,12 +529,10 @@ class NetworkDefinition:
                                            if n.node_name == source_host_name][0]
             print(f"flow {flow}: {flow_demand.source_node} - {flow_demand.destination_node} - {flow_demand.rate}")
 
-            # mark packets
-            # iptables -t mangle -A PREROUTING -s <IP_ADDRESS> -j MARK --set-mark <MARK_VALUE>
-
-            #get router connected to host
+            # flow table 0 is special, add 1 to avoid it
+            mark = flow + 1
             immediate_router = self._get_connected_router(source_host)
-            net[immediate_router.node_name].cmd(f"iptables -t mangle -A PREROUTING -s {source_host.address} -d {target_host.address} -j MARK --set-mark {flow}")
+            net[immediate_router.node_name].cmd(f"iptables -t mangle -A PREROUTING -s {source_host.address} -d {target_host.address} -j MARK --set-mark {mark}")
             net[immediate_router.node_name].cmd("sysctl net.ipv4.conf.all.rp_filter=0")
             for route in routes:
                 source_router_name: str = route.split("_")[0]
@@ -544,13 +542,13 @@ class NetworkDefinition:
                                                                                       target_router_name)
                 # old
                 # routing_table_entry = f"ip route add {target_host.address} via {target_router.address}"
-                routing_table_entry = f"ip route add {target_host.address} via {target_host.address} table {flow}"
-                net[source_router_name].cmd(f"ip rule add fwmark {flow} table {flow} priority 1000")
+                routing_table_entry = f"ip route add {target_host.address} via {target_host.address} table {mark}"
+                net[source_router_name].cmd(f"ip rule add fwmark {mark} table {mark} priority 1000")
                 print(f"{source_router_name}: {routing_table_entry}")
                 net[source_router_name].cmd(routing_table_entry)
                 # old
                 # routing_table_entry_t = f"ip route add {source_host.address} via {source_router.address}"
-                routing_table_entry_t = f"ip route add {source_host.address} via {source_router.address} table {flow}"
+                routing_table_entry_t = f"ip route add {source_host.address} via {source_router.address} table {mark}"
                 net[target_router_name].cmd(routing_table_entry_t)
                 print(f"{target_router_name}: {routing_table_entry_t}")
 
@@ -594,72 +592,6 @@ class NetworkDefinition:
                 if host2_subnet == host_subnet:
                     continue
                 net[host.node_name].cmd(f"ip route add {node.address} via {router.address}")
-
-        CLI(net)
-        net.stop()
-        return
-
-    def set_up_emulation_2(self):
-        shortest_paths = self._find_shortest_paths()
-        topology: NetworkTopology = NetworkTopology(subnet_to_nodes=self._subnet_to_nodes)
-
-        # r2 ip route add 192.168.0.4/30 via 192.168.0.1
-        # r3 ip route add 192.168.0.0/30 via 192.168.0.5
-
-        net = Mininet(topo=topology, controller=None, switch=OVSBridge)
-        net.start()
-
-        # HOST go through their only router anyway
-        node_names = [n.node_name for v in self._subnet_to_nodes.values() for n in v if n.node_type != NodeType.HOST]
-        node_names = list(set(node_names))
-        # set up routing tables
-        for source_node, paths in shortest_paths.items():
-            # if source_node.startswith("h"):
-            #     continue
-            node_to_dist = paths[0]
-            node_to_prev = paths[1]
-            source_node_interfaces = [n for v in self._subnet_to_nodes.values() for n in v if
-                                      n.node_name == source_node]
-            for node_name in node_names:
-                if node_name == source_node:
-                    continue
-                prev = node_to_prev[node_name]
-                # prev and node are neighbours therefore they are both part of at least one subnet
-                link = self.find_shortest_link_between(node_name, prev)
-
-                for si in source_node_interfaces:
-                    complete_subnet_address = si.complete_address()
-                    routing_table_entry = f"ip route add {si.address} via {link.address}"
-                    print(f"{node_name}: {routing_table_entry}")
-                    net[node_name].cmd(routing_table_entry)
-                pass
-            #  router1.cmd('ip route add 10.0.2.0/24 via 10.1.2.2')
-            pass
-        pass
-
-        # for reasons beyond my understanding the hosts need to be told how to find other hosts explicitly even
-        # if they have a default route.
-        nodes = [n for v in self._subnet_to_nodes.values() for n in v]
-        hosts: List[NodeDefinition] = [n for n in nodes if n.node_type == NodeType.HOST]
-        for host in hosts:
-            host_subnet = get_subnet(host.address, host.mask)
-            subnet_nodes = self._subnet_to_nodes[host_subnet]
-            router = [n for n in subnet_nodes if n.node_type == NodeType.ROUTER][0]
-            for host2 in hosts:
-                if host.node_name == host2.node_name:
-                    continue
-                host2_subnet = get_subnet(host2.address, host2.mask)
-                if host2_subnet == host_subnet:
-                    continue
-                net[host.node_name].cmd(f"ip route add {host2.address} via {router.address}")
-
-        # r2 = net["r2"]
-        # r3 = net["r3"]
-        # r2.cmd("ip route add 10.0.3.0/24 via 192.168.1.3")
-        # r3.cmd("ip route add 10.0.2.0/24 via 192.168.1.2")
-
-        # r2.cmd("ip route add 192.168.0.4/30 via 192.168.0.1")
-        # r3.cmd("ip route add 192.168.0.0/30 via 192.168.0.5")
 
         CLI(net)
         net.stop()
