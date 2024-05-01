@@ -587,13 +587,13 @@ class NetworkDefinition:
             host_subnet = get_subnet(host.address, host.mask)
             subnet_nodes = self._subnet_to_nodes[host_subnet]
             router = [n for n in subnet_nodes if n.node_type == NodeType.ROUTER][0]
-            for host2 in hosts:
-                if host.node_name == host2.node_name:
+            for node in nodes:
+                if host.node_name == node.node_name:
                     continue
-                host2_subnet = get_subnet(host2.address, host2.mask)
+                host2_subnet = get_subnet(node.address, node.mask)
                 if host2_subnet == host_subnet:
                     continue
-                net[host.node_name].cmd(f"ip route add {host2.address} via {router.address}")
+                net[host.node_name].cmd(f"ip route add {node.address} via {router.address}")
 
         CLI(net)
         net.stop()
