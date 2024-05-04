@@ -554,6 +554,7 @@ class NetworkDefinition:
                 # old
                 # routing_table_entry_t = f"ip route add {source_host.address} via {source_router.address}"
                 routing_table_entry_t = f"ip route add {source_host.address} via {source_router.address} table {mark}"
+                net[target_router_name].cmd(f"ip rule add fwmark {mark} table {mark} priority 1000")
                 net[target_router_name].cmd(routing_table_entry_t)
                 print(f"{target_router_name}: {routing_table_entry_t}")
 
