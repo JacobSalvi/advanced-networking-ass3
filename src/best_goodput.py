@@ -536,6 +536,9 @@ class NetworkDefinition:
             immediate_router = self._get_connected_router(source_host)
             net[immediate_router.node_name].cmd(f"iptables -t mangle -A PREROUTING -s {source_host.address} -d {target_host.address} -j MARK --set-mark {mark}")
             net[immediate_router.node_name].cmd("sysctl net.ipv4.conf.all.rp_filter=0")
+            target_immediate_router = self._get_connected_router(target_host)
+            net[target_immediate_router.node_name].cmd(f"iptables -t mangle -A PREROUTING -s {target_host.address} -d {source_host.address} -j MARK --set-mark {mark}")
+            net[target_immediate_router.node_name].cmd("sysctl net.ipv4.conf.all.rp_filter=0")
             for route in routes:
                 source_router_name: str = route.split("_")[0]
                 target_router_name: str = route.split("_")[1]
